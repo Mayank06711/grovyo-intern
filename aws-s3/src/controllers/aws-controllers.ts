@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
-import { AWS_SERVICES } from "../helper/AWS";
+import { AWS_SERVICES } from "../helper/aws";
 import { ApiError } from "../utils/apiError";
-import { ApiResponse } from "../utils/apiResponse";
 
 interface GeneratePresignedUrlQuery {
   fileName: string;
@@ -14,7 +13,7 @@ class AWSAPI {
     res.send(`
 
         <!DOCTYPE html>
-<html lang="en">
+ <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -150,14 +149,14 @@ class AWSAPI {
 
       try {
         // Call a backend endpoint to generate presigned URL
-        const response = await fetch('/api/v1/xyz-company/generatePresignedUrl', {
+        const response = await fetch('/api/v1/aws/generatePresignedUrl', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ fileName, contentType })
         });
-
+        
         if (!response.ok) {
           throw new Error('Failed to generate presigned URL');
         }
@@ -193,14 +192,43 @@ class AWSAPI {
         `);
   }
 
-  private static async generatePresignedUrl(req: Request, res: Response) {
+
+//   private static async generatePresignedUrl(req: Request, res: Response) {
+//     try {
+//       console.log(req);
+//       const { fileName, contentType } = req.body;
+//       console.log(fileName, contentType);
+//      if (!fileName || !contentType) {
+//       throw new Error("Invalid file or content type");
+//     }
+
+//       // Generate presigned URL
+//       const preSignedUrl = await AWS_SERVICES.putObjectToS3(
+//         process.env.AWS_BUCKET_NAME!,
+//         fileName,
+//         contentType,
+//         3600
+//       );
+//       if (!preSignedUrl) {
+//         throw new Error("Failed to generate presigned URL");
+//       }
+//       console.log(preSignedUrl, "preSigned");
+//       // Send the presigned URL back to the client
+//       res.status(200).json({ presignedUrl: preSignedUrl });
+//     } catch (error) {
+//       console.error("Error generating presigned URL:", error);
+//       res.status(500).json({ error: "Failed to generate presigned URL" });
+//     }
+//   }
+
+
+    private static async generatePresignedUrl(req: Request, res: Response) {
     try {
-      console.log(req);
       const { fileName, contentType } = req.body;
-      console.log(fileName, contentType);
-     if (!fileName || !contentType) {
-      throw new Error("Invalid file or content type");
-    }
+      console.log(fileName, contentType)
+      if (!fileName || !contentType) {
+        throw new ApiError(400, "Invalid file or content type");
+      }
 
       // Generate presigned URL
       const preSignedUrl = await AWS_SERVICES.putObjectToS3(
@@ -209,19 +237,43 @@ class AWSAPI {
         contentType,
         3600
       );
+
       if (!preSignedUrl) {
-        throw new Error("Failed to generate presigned URL");
+        throw new ApiError(500, "Failed to generate presigned URL");
       }
-      console.log(preSignedUrl, "preSigned");
-      // Send the presigned URL back to the client
+
       res.status(200).json({ presignedUrl: preSignedUrl });
     } catch (error) {
       console.error("Error generating presigned URL:", error);
       res.status(500).json({ error: "Failed to generate presigned URL" });
     }
+    }
+
+
+  private static async uploadFiles(req: Request, res: Response) {
+    try {
+    //  console.log("Uploading files")
+      const files = req.files as Express.Multer.File[];
+     // console.log(files)
+      if (!files || files.length === 0) {
+        throw new ApiError(400, "No files uploaded");
+      }
+
+      const uploadPromises = files.map(file =>
+        AWS_SERVICES.multipartUpload(process.env.AWS_BUCKET_NAME!, file.originalname, file)
+      );
+
+      const fileUrls = await Promise.all(uploadPromises);
+
+      res.status(200).json({ message: "Files uploaded successfully", fileUrls: fileUrls });
+    } catch (error: any) {
+      console.error("Error uploading files:", error);
+      res.status(500).json({ error: "Failed to upload files" });
+    }
   }
   static upload = AWSAPI.uploadData;
   static generatePresignedURL = AWSAPI.generatePresignedUrl;
+  static uploadFile = AWSAPI.uploadFiles;
 }
 
 export { AWSAPI };
