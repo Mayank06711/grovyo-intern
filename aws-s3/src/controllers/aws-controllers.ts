@@ -193,35 +193,6 @@ class AWSAPI {
   }
 
 
-//   private static async generatePresignedUrl(req: Request, res: Response) {
-//     try {
-//       console.log(req);
-//       const { fileName, contentType } = req.body;
-//       console.log(fileName, contentType);
-//      if (!fileName || !contentType) {
-//       throw new Error("Invalid file or content type");
-//     }
-
-//       // Generate presigned URL
-//       const preSignedUrl = await AWS_SERVICES.putObjectToS3(
-//         process.env.AWS_BUCKET_NAME!,
-//         fileName,
-//         contentType,
-//         3600
-//       );
-//       if (!preSignedUrl) {
-//         throw new Error("Failed to generate presigned URL");
-//       }
-//       console.log(preSignedUrl, "preSigned");
-//       // Send the presigned URL back to the client
-//       res.status(200).json({ presignedUrl: preSignedUrl });
-//     } catch (error) {
-//       console.error("Error generating presigned URL:", error);
-//       res.status(500).json({ error: "Failed to generate presigned URL" });
-//     }
-//   }
-
-
     private static async generatePresignedUrl(req: Request, res: Response) {
     try {
       const { fileName, contentType } = req.body;
@@ -271,6 +242,8 @@ class AWSAPI {
       res.status(500).json({ error: "Failed to upload files" });
     }
   }
+
+  
   static upload = AWSAPI.uploadData;
   static generatePresignedURL = AWSAPI.generatePresignedUrl;
   static uploadFile = AWSAPI.uploadFiles;
