@@ -21,8 +21,9 @@ function App() {
   const nextPage = () => {
     setPage(prevPage => {
       if(errors.length > 0)
-      return prevPage + 1; // Increment page number and return the new state
-      else return prevPage
+      return prevPage + 1; //   Increment page number and return the new state
+      else 
+      return prevPage
     });
   };
   
