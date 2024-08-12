@@ -28,7 +28,7 @@ const ErrorManagement = () => {
   const dispatch = useDispatch();
   const { loading, errors, currentPage, totalPages, errorMsg } = useSelector(state => state);
   const [selectedErrorId, setSelectedErrorId] = useState('');
- console.log(currentPage)
+ console.log(currentPage, errors)
   useEffect(() => {
     dispatch(fetchErrors(currentPage));
   }, [dispatch, currentPage]);
@@ -54,7 +54,7 @@ const ErrorManagement = () => {
   
   // Create an array of all dates between the start and end dates
 const startDate = new Date(Math.min(...Object.keys(chartData).map(date => new Date(date))));
-const endDate = new Date();
+const endDate = new Date(Math.max(...Object.keys(chartData)));
 let currentDate = startDate;
 
 while (currentDate <= endDate) {
@@ -105,18 +105,30 @@ while (currentDate <= endDate) {
       <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
         <thead className="bg-gray-200">
           <tr className="text-left border-b border-gray-200">
-            <th className="py-2 px-4 text-sm font-semibold text-gray-700">ID</th>
+            <th className="py-2 px-4 text-sm font-semibold text-gray-700">ERROR_ID</th>
             <th className="py-2 px-4 text-sm font-semibold text-gray-700">Name</th>
             <th className="py-2 px-4 text-sm font-semibold text-gray-700">Message</th>
+            <th className="py-2 px-4 text-sm font-semibold text-gray-700">Code</th>
             <th className="py-2 px-4 text-sm font-semibold text-gray-700">Status</th>
             <th className="py-2 px-4 text-sm font-semibold text-gray-700">Date</th>
             <th className="py-2 px-4 text-sm font-semibold text-gray-700">Time</th>
             <th className="py-2 px-4 text-sm font-semibold text-gray-700">Platform</th>
             <th className="py-2 px-4 text-sm font-semibold text-gray-700">Path</th>
+            <th className="py-2 px-4 text-sm font-semibold text-gray-700">User_ID</th>
+            <th className="py-2 px-4 text-sm font-semibold text-gray-700">UserName</th>
+            <th className="py-2 px-4 text-sm font-semibold text-gray-700">FullName</th>
           </tr>
         </thead>
         <tbody>
-          {errors.map((error) => {
+          {errors.sort((a, b) => {
+  if (a.code >= 500 && b.code < 500) {
+    return -1; // a should come before b
+  } else if (a.code < 500 && b.code >= 500) {
+    return 1; // b should come before a
+  } else {
+    return a.code - b.code; // sort the remaining errors by their code
+  }
+}).map((error) => {
             const errorDate = new Date(error.timestamp || Date.now());
             const formattedDate = errorDate.toLocaleDateString();
             const formattedTime = errorDate.toLocaleTimeString();
@@ -125,7 +137,8 @@ while (currentDate <= endDate) {
               <tr key={error._id} className="border-b border-gray-200">
                 <td className="py-2 px-4 text-sm text-gray-800">{error._id || 'N/A'}</td>
                 <td className="py-2 px-4 text-sm text-gray-800">{error.name || 'N/A'}</td>
-                <td className="py-2 px-4 text-sm text-gray-800">{error.message || 'N/A'}</td>
+                <td className="py-2 px-4 text-sm text-gray-800">{error.message.slice(0,10) || 'N/A'}</td>
+                <td className="py-2 px-4 text-sm text-gray-800">{error.code || 'N/A'}</td>
                 <td className="py-2 px-4 text-sm text-gray-800">
                   {error.resolved ? (
                     <span className="text-green-600">Resolved</span>
@@ -137,6 +150,9 @@ while (currentDate <= endDate) {
                 <td className="py-2 px-4 text-sm text-gray-800">{formattedTime}</td>
                 <td className="py-2 px-4 text-sm text-gray-800">{error.platform || 'N/A'}</td>
                 <td className="py-2 px-4 text-sm text-gray-800">{error.path || 'N/A'}</td>
+                <td className="py-2 px-4 text-sm text-gray-800">{error.userId || 'N/A'}</td>
+                <td className="py-2 px-4 text-sm text-gray-800">{error.username || 'N/A'}</td>
+                <td className="py-2 px-4 text-sm text-gray-800">{error.fullName|| 'N/A'}</td>
               </tr>
             );
           })}
