@@ -9,7 +9,7 @@ export const fetchErrors = (page) => {
   return async (dispatch) => {
     dispatch({ type: FETCH_ERRORS_REQUEST });
     try {
-      const response = await axios.get('http://localhost:3000/error/getErrors', {
+      const response = await axios.get('http://3.110.110.198:3000//error/getErrors', {
         params: { q: false, page },
       });
       dispatch({ type: FETCH_ERRORS_SUCCESS, payload: response.data });
@@ -22,7 +22,7 @@ export const fetchErrors = (page) => {
 export const resolveError = (id) => {
   return async (dispatch) => {
     try {
-      const response = await axios.patch(`http://localhost:3000/error/${id}`);
+      const response = await axios.patch(`http://3.110.110.198:3000//error/${id}`);
       if (response.status === 200) {
         dispatch({ type: RESOLVE_ERROR_SUCCESS, payload: id });
       }
